@@ -25,12 +25,11 @@ const orderSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, 'Name cannot exceed 100 characters']
   },
-  email: {
+  phoneNumber: {
     type: String,
-    required: [true, 'Email is required'],
+    required: [true, 'Phone number is required'],
     trim: true,
-    lowercase: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+    match: [/^(0\d{9}|\+\d{15}|\d{10})$/, 'Please enter a valid phone number']
   },
   products: {
     type: [productSchema],

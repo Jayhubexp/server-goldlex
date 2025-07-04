@@ -12,11 +12,12 @@ const validateOrder = [
     .withMessage('Name is required')
     .isLength({ max: 100 })
     .withMessage('Name cannot exceed 100 characters'),
-  body('email')
+  body('phoneNumber')
     .trim()
-    .isEmail()
-    .withMessage('Please enter a valid email')
-    .normalizeEmail(),
+    .notEmpty()
+    .withMessage('Phone number is required')
+    .matches(/^(0\d{9}|\+\d{15}|\d{10})$/)
+    .withMessage('Please enter a valid phone number'),
   body('products')
     .isArray({ min: 1 })
     .withMessage('At least one product is required'),
@@ -110,11 +111,11 @@ router.post('/', validateOrder, async (req, res, next) => {
       });
     }
 
-    const { name, email, products, creditRequested = false } = req.body;
+    const { name, phoneNumber, products, creditRequested = false } = req.body;
 
     const order = new Order({
       name,
-      email,
+      phoneNumber,
       products,
       creditRequested
     });
@@ -127,7 +128,7 @@ router.post('/', validateOrder, async (req, res, next) => {
       data: {
         id: order._id,
         name: order.name,
-        email: order.email,
+        phoneNumber: order.phoneNumber,
         products: order.products,
         totalAmount: order.totalAmount,
         creditRequested: order.creditRequested,
