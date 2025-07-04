@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Goldlex Auto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .modal { display: none; }
+        .modal.active { display: flex; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Welcome, Admin</span>
+                    <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8">
+                <button class="tab-btn py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium" data-tab="orders">
+                    <i class="fas fa-shopping-cart mr-2"></i>Orders
+                </button>
+                <button class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium" data-tab="cars">
+                    <i class="fas fa-car mr-2"></i>Cars
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Orders Tab -->
+        <div id="orders-tab" class="tab-content active">
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-semibold text-gray-900">Orders Management</h2>
+                        <div class="flex space-x-4">
+                            <select id="credit-filter" class="border border-gray-300 rounded-md px-3 py-2">
+                                <option value="">All Orders</option>
+                                <option value="true">Credit Requested</option>
+                                <option value="false">No Credit</option>
+                            </select>
+                            <select id="status-filter" class="border border-gray-300 rounded-md px-3 py-2">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credit</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="orders-pagination" class="px-6 py-4 border-t border-gray-200">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Cars Tab -->
+        <div id="cars-tab" class="tab-content">
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-semibold text-gray-900">Cars Management</h2>
+                        <button id="add-car-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Add New Car
+                        </button>
+                    </div>
+                </div>
+                <div id="cars-grid" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cars will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Car Modal -->
+    <div id="car-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 id="modal-title" class="text-lg font-semibold text-gray-900">Add New Car</h3>
+                    <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="car-form" class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Basic Information -->
+                    <div class="space-y-4">
+                        <h4 class="font-medium text-gray-900">Basic Information</h4>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Make</label>
+                            <input type="text" name="make" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                            <input type="text" name="model" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                            <input type="number" name="year" required min="1900" max="2025" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mileage</label>
+                            <input type="number" name="mileage" required min="0" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                            <input type="number" name="price" required min="0" step="0.01" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select name="status" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="available">Available</option>
+                                <option value="sold">Sold</option>
+                                <option value="reserved">Reserved</option>
+                                <option value="maintenance">Maintenance</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Specifications -->
+                    <div class="space-y-4">
+                        <h4 class="font-medium text-gray-900">Specifications</h4>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Engine</label>
+                            <input type="text" name="specifications.engine" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Transmission</label>
+                            <select name="specifications.transmission" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Transmission</option>
+                                <option value="manual">Manual</option>
+                                <option value="automatic">Automatic</option>
+                                <option value="cvt">CVT</option>
+                                <option value="semi-automatic">Semi-Automatic</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Fuel Type</label>
+                            <select name="specifications.fuelType" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Fuel Type</option>
+                                <option value="petrol">Petrol</option>
+                                <option value="diesel">Diesel</option>
+                                <option value="hybrid">Hybrid</option>
+                                <option value="electric">Electric</option>
+                                <option value="lpg">LPG</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                            <input type="text" name="specifications.color" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Seats</label>
+                            <input type="number" name="specifications.seats" min="2" max="9" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Drivetrain</label>
+                            <select name="specifications.drivetrain" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Drivetrain</option>
+                                <option value="fwd">Front-Wheel Drive</option>
+                                <option value="rwd">Rear-Wheel Drive</option>
+                                <option value="awd">All-Wheel Drive</option>
+                                <option value="4wd">4-Wheel Drive</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">VIN</label>
+                            <input type="text" name="specifications.vin" maxlength="17" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images and Description -->
+                <div class="mt-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Images (URLs, one per line)</label>
+                        <textarea name="images" required rows="3" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Features (one per line)</label>
+                        <textarea name="features" rows="3" placeholder="Air Conditioning&#10;Bluetooth&#10;Backup Camera" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea name="description" rows="4" maxlength="1000" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end space-x-4">
+                    <button type="button" id="cancel-btn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Save Car
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = window.location.origin + '/api';
+
+        // Global variables
+        let currentCarId = null;
+        let currentPage = 1;
+
+        // Tab functionality
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                
+                // Update tab buttons
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('border-blue-500', 'text-blue-600');
+                    b.classList.add('border-transparent', 'text-gray-500');
+                });
+                btn.classList.remove('border-transparent', 'text-gray-500');
+                btn.classList.add('border-blue-500', 'text-blue-600');
+                
+                // Update tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tabId + '-tab').classList.add('active');
+                
+                // Load data for the active tab
+                if (tabId === 'orders') {
+                    loadOrders();
+                } else if (tabId === 'cars') {
+                    loadCars();
+                }
+            });
+        });
+
+        // Modal functionality
+        const modal = document.getElementById('car-modal');
+        const addCarBtn = document.getElementById('add-car-btn');
+        const closeModal = document.getElementById('close-modal');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        addCarBtn.addEventListener('click', () => {
+            currentCarId = null;
+            document.getElementById('modal-title').textContent = 'Add New Car';
+            document.getElementById('car-form').reset();
+            modal.classList.add('active');
+        });
+
+        [closeModal, cancelBtn].forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+        });
+
+        // Close modal on backdrop click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+
+        // Load Orders
+        async function loadOrders(page = 1) {
+            try {
+                const creditFilter = document.getElementById('credit-filter').value;
+                const statusFilter = document.getElementById('status-filter').value;
+                
+                let url = `${API_BASE}/order?page=${page}&limit=10`;
+                if (creditFilter) url += `&creditRequested=${creditFilter}`;
+                if (statusFilter) url += `&status=${statusFilter}`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success) {
+                    renderOrders(data.data);
+                    renderOrdersPagination(data.pagination);
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                alert('Error loading orders');
+            }
+        }
+
+        // Render Orders
+        function renderOrders(orders) {
+            const tbody = document.getElementById('orders-table-body');
+            tbody.innerHTML = '';
+
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${order._id.slice(-8)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${order.name}</div>
+                        <div class="text-sm text-gray-500">${order.email}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">
+                            ${order.products.map(p => `${p.productName} (${p.quantity})`).join(', ')}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        $${order.totalAmount.toFixed(2)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            order.creditRequested 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                        }">
+                            ${order.creditRequested ? 'Yes' : 'No'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <select onchange="updateOrderStatus('${order._id}', this.value)" 
+                                class="text-sm border border-gray-300 rounded px-2 py-1 ${getStatusColor(order.status)}">
+                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                            <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+                            <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${new Date(order.createdAt).toLocaleDateString()}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="deleteOrder('${order._id}')" 
+                                class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Get status color
+        function getStatusColor(status) {
+            const colors = {
+                pending: 'bg-yellow-100 text-yellow-800',
+                processing: 'bg-blue-100 text-blue-800',
+                completed: 'bg-green-100 text-green-800',
+                cancelled: 'bg-red-100 text-red-800'
+            };
+            return colors[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        // Render Orders Pagination
+        function renderOrdersPagination(pagination) {
+            const container = document.getElementById('orders-pagination');
+            container.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        Showing ${((pagination.current - 1) * 10) + 1} to ${Math.min(pagination.current * 10, pagination.total)} of ${pagination.total} results
+                    </div>
+                    <div class="flex space-x-2">
+                        ${pagination.current > 1 ? `<button onclick="loadOrders(${pagination.current - 1})" class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">Previous</button>` : ''}
+                        ${pagination.current < pagination.pages ? `<button onclick="loadOrders(${pagination.current + 1})" class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">Next</button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Update Order Status
+        async function updateOrderStatus(orderId, status) {
+            try {
+                const response = await fetch(`${API_BASE}/order/${orderId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    alert('Error updating order status');
+                    loadOrders(currentPage);
+                }
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                alert('Error updating order status');
+                loadOrders(currentPage);
+            }
+        }
+
+        // Delete Order
+        async function deleteOrder(orderId) {
+            if (!confirm('Are you sure you want to delete this order?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/order/${orderId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    loadOrders(currentPage);
+                } else {
+                    alert('Error deleting order');
+                }
+            } catch (error) {
+                console.error('Error deleting order:', error);
+                alert('Error deleting order');
+            }
+        }
+
+        // Load Cars
+        async function loadCars() {
+            try {
+                const response = await fetch(`${API_BASE}/cars?limit=50`);
+                const data = await response.json();
+
+                if (data.success) {
+                    renderCars(data.data);
+                }
+            } catch (error) {
+                console.error('Error loading cars:', error);
+                alert('Error loading cars');
+            }
+        }
+
+        // Render Cars
+        function renderCars(cars) {
+            const grid = document.getElementById('cars-grid');
+            grid.innerHTML = '';
+
+            cars.forEach(car => {
+                const card = document.createElement('div');
+                card.className = 'bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow';
+                card.innerHTML = `
+                    <div class="aspect-w-16 aspect-h-9">
+                        <img src="${car.images[0]}" alt="${car.make} ${car.model}" 
+                             class="w-full h-48 object-cover" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-semibold text-gray-900">${car.year} ${car.make} ${car.model}</h3>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${getCarStatusColor(car.status)}">
+                                ${car.status.charAt(0).toUpperCase() + car.status.slice(1)}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-2">${car.mileage.toLocaleString()} miles</p>
+                        <p class="text-xl font-bold text-green-600 mb-4">$${car.price.toLocaleString()}</p>
+                        <div class="flex space-x-2">
+                            <button onclick="editCar('${car._id}')" 
+                                    class="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-edit mr-1"></i>Edit
+                            </button>
+                            <button onclick="deleteCar('${car._id}')" 
+                                    class="flex-1 bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 transition-colors">
+                                <i class="fas fa-trash mr-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Get car status color
+        function getCarStatusColor(status) {
+            const colors = {
+                available: 'bg-green-100 text-green-800',
+                sold: 'bg-red-100 text-red-800',
+                reserved: 'bg-yellow-100 text-yellow-800',
+                maintenance: 'bg-gray-100 text-gray-800'
+            };
+            return colors[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        // Edit Car
+        async function editCar(carId) {
+            try {
+                const response = await fetch(`${API_BASE}/cars/${carId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    currentCarId = carId;
+                    document.getElementById('modal-title').textContent = 'Edit Car';
+                    populateCarForm(data.data);
+                    modal.classList.add('active');
+                }
+            } catch (error) {
+                console.error('Error loading car:', error);
+                alert('Error loading car');
+            }
+        }
+
+        // Populate Car Form
+        function populateCarForm(car) {
+            const form = document.getElementById('car-form');
+            
+            // Basic fields
+            form.make.value = car.make;
+            form.model.value = car.model;
+            form.year.value = car.year;
+            form.mileage.value = car.mileage;
+            form.price.value = car.price;
+            form.status.value = car.status;
+            
+            // Specifications
+            if (car.specifications) {
+                form['specifications.engine'].value = car.specifications.engine || '';
+                form['specifications.transmission'].value = car.specifications.transmission || '';
+                form['specifications.fuelType'].value = car.specifications.fuelType || '';
+                form['specifications.color'].value = car.specifications.color || '';
+                form['specifications.seats'].value = car.specifications.seats || '';
+                form['specifications.drivetrain'].value = car.specifications.drivetrain || '';
+                form['specifications.vin'].value = car.specifications.vin || '';
+            }
+            
+            // Images and features
+            form.images.value = car.images.join('\n');
+            form.features.value = car.specifications?.features?.join('\n') || '';
+            form.description.value = car.description || '';
+        }
+
+        // Delete Car
+        async function deleteCar(carId) {
+            if (!confirm('Are you sure you want to delete this car?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/cars/${carId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    loadCars();
+                } else {
+                    alert('Error deleting car');
+                }
+            } catch (error) {
+                console.error('Error deleting car:', error);
+                alert('Error deleting car');
+            }
+        }
+
+        // Car Form Submit
+        document.getElementById('car-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const carData = {};
+            
+            // Basic fields
+            carData.make = formData.get('make');
+            carData.model = formData.get('model');
+            carData.year = parseInt(formData.get('year'));
+            carData.mileage = parseInt(formData.get('mileage'));
+            carData.price = parseFloat(formData.get('price'));
+            carData.status = formData.get('status');
+            carData.description = formData.get('description');
+            
+            // Images
+            const imagesText = formData.get('images');
+            carData.images = imagesText.split('\n').filter(url => url.trim()).map(url => url.trim());
+            
+            // Features
+            const featuresText = formData.get('features');
+            const features = featuresText ? featuresText.split('\n').filter(f => f.trim()).map(f => f.trim()) : [];
+            
+            // Specifications
+            carData.specifications = {
+                engine: formData.get('specifications.engine'),
+                transmission: formData.get('specifications.transmission'),
+                fuelType: formData.get('specifications.fuelType'),
+                color: formData.get('specifications.color'),
+                seats: formData.get('specifications.seats') ? parseInt(formData.get('specifications.seats')) : undefined,
+                drivetrain: formData.get('specifications.drivetrain'),
+                vin: formData.get('specifications.vin'),
+                features: features
+            };
+
+            try {
+                const url = currentCarId ? `${API_BASE}/cars/${currentCarId}` : `${API_BASE}/cars`;
+                const method = currentCarId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(carData)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    modal.classList.remove('active');
+                    loadCars();
+                } else {
+                    alert('Error saving car: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error saving car:', error);
+                alert('Error saving car');
+            }
+        });
+
+        // Filter event listeners
+        document.getElementById('credit-filter').addEventListener('change', () => loadOrders(1));
+        document.getElementById('status-filter').addEventListener('change', () => loadOrders(1));
+
+        // Initial load
+        loadOrders();
+    </script>
+</body>
+</html>

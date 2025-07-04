@@ -45,6 +45,15 @@ const orderSchema = new mongoose.Schema({
   totalAmount: {
     type: Number,
     default: 0
+  },
+  creditRequested: {
+    type: Boolean,
+    default: false
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'processing', 'completed', 'cancelled'],
+    default: 'pending'
   }
 }, {
   timestamps: true
