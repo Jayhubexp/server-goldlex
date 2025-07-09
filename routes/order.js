@@ -31,74 +31,9 @@ const validateOrder = [
 	body("products.*.price")
 		.isFloat({ min: 0 })
 		.withMessage("Price cannot be negative"),
-	body("creditRequested")
-		.optional()
-		.isBoolean()
-		.withMessage("Credit requested must be a boolean value"),
 ];
 
-// GET /api/order - Get all orders (for admin)
-router.get("/", async (req, res, next) => {
-	try {
-		const { creditRequested, status, page = 1, limit = 10 } = req.query;
-
-		// Build filter object
-		const filter = {};
-		if (creditRequested !== undefined) {
-			filter.creditRequested = creditRequested === "true";
-		}
-		if (status) {
-			filter.status = status;
-		}
-
-		// Calculate pagination
-		const skip = (parseInt(page) - 1) * parseInt(limit);
-
-		// Get orders with pagination
-		const orders = await Order.find(filter)
-			.sort({ createdAt: -1 })
-			.skip(skip)
-			.limit(parseInt(limit));
-
-		// Get total count for pagination
-		const total = await Order.countDocuments(filter);
-
-		res.status(200).json({
-			success: true,
-			data: orders,
-			pagination: {
-				current: parseInt(page),
-				pages: Math.ceil(total / parseInt(limit)),
-				total,
-			},
-		});
-	} catch (error) {
-		next(error);
-	}
-});
-
-// GET /api/order/:id - Get single order
-router.get("/:id", async (req, res, next) => {
-	try {
-		const order = await Order.findById(req.params.id);
-
-		if (!order) {
-			return res.status(404).json({
-				success: false,
-				message: "Order not found",
-			});
-		}
-
-		res.status(200).json({
-			success: true,
-			data: order,
-		});
-	} catch (error) {
-		next(error);
-	}
-});
-
-// POST /api/order - Create new order
+// POST /api/order
 router.post("/", validateOrder, async (req, res, next) => {
 	try {
 		// Check validation results
@@ -111,13 +46,12 @@ router.post("/", validateOrder, async (req, res, next) => {
 			});
 		}
 
-		const { name, phoneNumber, products, creditRequested = false } = req.body;
+		const { name, phoneNumber, products } = req.body;
 
 		const order = new Order({
 			name,
 			phoneNumber,
 			products,
-			creditRequested,
 		});
 
 		await order.save();
@@ -131,8 +65,6 @@ router.post("/", validateOrder, async (req, res, next) => {
 				phoneNumber: order.phoneNumber,
 				products: order.products,
 				totalAmount: order.totalAmount,
-				creditRequested: order.creditRequested,
-				status: order.status,
 				submittedAt: order.createdAt,
 			},
 		});
@@ -213,11 +145,12 @@ export default router;
 //     .withMessage('Name is required')
 //     .isLength({ max: 100 })
 //     .withMessage('Name cannot exceed 100 characters'),
-//   body('email')
+//   body('phoneNumber')
 //     .trim()
-//     .isEmail()
-//     .withMessage('Please enter a valid email')
-//     .normalizeEmail(),
+//     .notEmpty()
+//     .withMessage('Phone number is required')
+//     .matches(/^(0\d{9}|\+\d{15}|\d{10})$/)
+//     .withMessage('Please enter a valid phone number'),
 //   body('products')
 //     .isArray({ min: 1 })
 //     .withMessage('At least one product is required'),
@@ -246,11 +179,11 @@ export default router;
 //       });
 //     }
 
-//     const { name, email, products } = req.body;
+//     const { name, phoneNumber, products } = req.body;
 
 //     const order = new Order({
 //       name,
-//       email,
+//       phoneNumber,
 //       products
 //     });
 
@@ -262,7 +195,7 @@ export default router;
 //       data: {
 //         id: order._id,
 //         name: order.name,
-//         email: order.email,
+//         phoneNumber: order.phoneNumber,
 //         products: order.products,
 //         totalAmount: order.totalAmount,
 //         submittedAt: order.createdAt
