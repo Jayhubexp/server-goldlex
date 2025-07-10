@@ -28,10 +28,11 @@ const orderSchema = new mongoose.Schema(
 		},
 		phoneNumber: {
 			type: String,
-
 			trim: true,
-			lowercase: true,
-			match: [],
+			match: [
+				/^(0\d{9}|\+\d{10,15}|\d{10,15})$/,
+				"Please enter a valid phone number",
+			],
 		},
 		products: {
 			type: [productSchema],
