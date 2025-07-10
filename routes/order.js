@@ -73,6 +73,30 @@ router.post("/", validateOrder, async (req, res, next) => {
 	}
 });
 
+// GET /api/order - Get all orders (for admin)
+router.get("/", async (req, res, next) => {
+	try {
+		const { page = 1, limit = 10 } = req.query;
+		const skip = (parseInt(page) - 1) * parseInt(limit);
+		const orders = await Order.find()
+			.sort({ createdAt: -1 })
+			.skip(skip)
+			.limit(parseInt(limit));
+		const total = await Order.countDocuments();
+		res.status(200).json({
+			success: true,
+			data: orders,
+			pagination: {
+				current: parseInt(page),
+				pages: Math.ceil(total / parseInt(limit)),
+				total,
+			},
+		});
+	} catch (error) {
+		next(error);
+	}
+});
+
 // PUT /api/order/:id - Update order status (admin only)
 router.put("/:id", async (req, res, next) => {
 	try {

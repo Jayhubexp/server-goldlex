@@ -32,12 +32,22 @@ app.use(helmet());
 // 		credentials: true,
 // 	}),
 // );
+// app.use(
+// 	cors({
+// 		origin:
+// 			process.env.NODE_ENV === "production"
+// 				? ["https://goldlex-auto.vercel.app/"] // Replace with your frontend domain
+// 				: ["http://localhost:3000", "http://localhost:5173"], // Development origins
+// 		credentials: true,
+// 	}),
+// );
 app.use(
 	cors({
-		origin:
-			process.env.NODE_ENV === "production"
-				? ["https://goldlex-auto.vercel.app/"] // Replace with your frontend domain
-				: ["http://localhost:3000", "http://localhost:5173"], // Development origins
+		origin: [
+			"https://goldlex-auto.vercel.app",
+			"http://localhost:5173",
+			"http://localhost:3000",
+		],
 		credentials: true,
 	}),
 );
