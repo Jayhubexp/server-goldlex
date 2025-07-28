@@ -11,6 +11,7 @@ import orderRoutes from "./routes/order.js";
 import creditApplicationRoutes from "./routes/creditApplication.js";
 import carFormRoutes from "./routes/carForm.js";
 import carRoutes from "./routes/car.js";
+import investorRoutes from "./routes/investor.js"; // Ensure this is the correct path to your investor routes
 
 // Load environment variables
 dotenv.config();
@@ -77,6 +78,7 @@ app.use("/api/order", orderRoutes);
 app.use("/api/credit-application", creditApplicationRoutes);
 app.use("/api/car-form", carFormRoutes);
 app.use("/api/cars", carRoutes);
+app.use("/api/investors", investorRoutes);
 
 // Handle 404 for undefined routes
 app.use("*", (req, res) => {
