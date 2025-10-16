@@ -74,7 +74,7 @@ async function sendSms(to, bodyText) {
 	const client = Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 	const msg = await client.messages.create({
 		from: TWILIO_FROM,
-		to,
+		to: ADMIN_PHONE_NUMBER,
 		body: bodyText,
 	});
 	return { skipped: false, msg };
