@@ -46,6 +46,7 @@ app.use(
 	cors({
 		origin: [
 			"https://goldlex-auto.vercel.app",
+			"https://goldgroupservice.com",
 			"http://localhost:5173",
 			"http://localhost:3000",
 		],
