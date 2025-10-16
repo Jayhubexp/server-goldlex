@@ -23,19 +23,26 @@ const validateCar = [
 		.isInt({ min: 1900, max: new Date().getFullYear() + 1 })
 		.withMessage("Year must be between 1900 and next year"),
 	body("mileage").isFloat({ min: 0 }).withMessage("Mileage cannot be negative"),
-	body("price").isFloat({ min: 0 }).withMessage("Price cannot be negative"),
+	// Price is optional — validate only if provided
+	body("price")
+		.optional()
+		.isFloat({ min: 0 })
+		.withMessage("Price cannot be negative"),
 	body("images")
 		.isArray({ min: 1 })
 		.withMessage("At least one image is required"),
 	body("images.*").isURL().withMessage("Each image must be a valid URL"),
+	// Status and specification fields are optional — validate only when provided
 	body("status")
 		.optional()
 		.isIn(["available", "sold", "reserved", "maintenance"])
 		.withMessage("Invalid status"),
 	body("specifications.transmission")
+		.optional()
 		.isIn(["manual", "automatic", "cvt", "semi-automatic"])
 		.withMessage("Invalid transmission type"),
 	body("specifications.fuelType")
+		.optional()
 		.isIn(["petrol", "diesel", "hybrid", "electric", "lpg"])
 		.withMessage("Invalid fuel type"),
 	body("specifications.seats")
@@ -46,6 +53,11 @@ const validateCar = [
 		.optional()
 		.isIn(["fwd", "rwd", "awd", "4wd"])
 		.withMessage("Invalid drivetrain type"),
+	body("specifications.engine")
+		.optional()
+		.trim()
+		.isLength({ max: 200 })
+		.withMessage("Engine specification cannot exceed 200 characters"),
 	body("description")
 		.optional()
 		.trim()
