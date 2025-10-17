@@ -28,8 +28,8 @@ const carSchema = new mongoose.Schema(
 		},
 		price: {
 			type: Number,
-			required: [true, "Price is required"],
 			min: [0, "Price cannot be negative"],
+			// This field is optional because 'required' is not set to true.
 		},
 		images: [
 			{
@@ -37,47 +37,12 @@ const carSchema = new mongoose.Schema(
 				required: true,
 			},
 		],
-		status: {
-			type: String,
-			enum: ["available", "sold", "reserved", "maintenance"],
-			default: "available",
-		},
 		specifications: {
-			engine: {
-				type: String,
-				trim: true,
-				maxlength: [100, "Engine specification cannot exceed 100 characters"],
-			},
-			transmission: {
-				type: String,
-				enum: ["manual", "automatic", "cvt", "semi-automatic"],
-				required: [true, "Transmission is required"],
-			},
-			fuelType: {
-				type: String,
-				enum: ["petrol", "diesel", "hybrid", "electric", "lpg"],
-				required: [true, "Fuel type is required"],
-			},
 			color: {
 				type: String,
+				required: [true, "Color is required"],
 				trim: true,
 				maxlength: [30, "Color cannot exceed 30 characters"],
-			},
-			seats: {
-				type: Number,
-				min: [2, "Must have at least 2 seats"],
-				max: [9, "Cannot have more than 9 seats"],
-			},
-			drivetrain: {
-				type: String,
-				enum: ["fwd", "rwd", "awd", "4wd"],
-			},
-			vin: {
-				type: String,
-				trim: true,
-				unique: true,
-				sparse: true,
-				maxlength: [17, "VIN cannot exceed 17 characters"],
 			},
 			features: [
 				{
@@ -104,7 +69,6 @@ const carSchema = new mongoose.Schema(
 
 // Create compound index for efficient searching
 carSchema.index({ make: 1, model: 1, year: 1 });
-carSchema.index({ status: 1 });
 carSchema.index({ price: 1 });
 
 // Auto-increment carId before saving a new car

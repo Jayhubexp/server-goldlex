@@ -23,41 +23,28 @@ const validateCar = [
 		.isInt({ min: 1900, max: new Date().getFullYear() + 1 })
 		.withMessage("Year must be between 1900 and next year"),
 	body("mileage").isFloat({ min: 0 }).withMessage("Mileage cannot be negative"),
-	// Price is optional — validate only if provided
 	body("price")
-		.optional()
+		.optional({ checkFalsy: true }) // Treats empty strings or null as optional
 		.isFloat({ min: 0 })
 		.withMessage("Price cannot be negative"),
 	body("images")
 		.isArray({ min: 1 })
 		.withMessage("At least one image is required"),
 	body("images.*").isURL().withMessage("Each image must be a valid URL"),
-	// Status and specification fields are optional — validate only when provided
-	body("status")
-		.optional()
-		.isIn(["available", "sold", "reserved", "maintenance"])
-		.withMessage("Invalid status"),
-	body("specifications.transmission")
-		.optional()
-		.isIn(["manual", "automatic", "cvt", "semi-automatic"])
-		.withMessage("Invalid transmission type"),
-	body("specifications.fuelType")
-		.optional()
-		.isIn(["petrol", "diesel", "hybrid", "electric", "lpg"])
-		.withMessage("Invalid fuel type"),
-	body("specifications.seats")
-		.optional()
-		.isInt({ min: 2, max: 9 })
-		.withMessage("Seats must be between 2 and 9"),
-	body("specifications.drivetrain")
-		.optional()
-		.isIn(["fwd", "rwd", "awd", "4wd"])
-		.withMessage("Invalid drivetrain type"),
-	body("specifications.engine")
-		.optional()
+	body("specifications.color")
 		.trim()
-		.isLength({ max: 200 })
-		.withMessage("Engine specification cannot exceed 200 characters"),
+		.notEmpty()
+		.withMessage("Color is required")
+		.isLength({ max: 30 })
+		.withMessage("Color cannot exceed 30 characters"),
+	body("specifications.features")
+		.optional()
+		.isArray()
+		.withMessage("Features must be an array"),
+	body("specifications.features.*")
+		.isString()
+		.trim()
+		.withMessage("Each feature must be a string"),
 	body("description")
 		.optional()
 		.trim()
@@ -69,7 +56,6 @@ const validateCar = [
 router.get("/", async (req, res, next) => {
 	try {
 		const {
-			status,
 			make,
 			model,
 			minPrice,
@@ -80,9 +66,8 @@ router.get("/", async (req, res, next) => {
 			sortOrder = "desc",
 		} = req.query;
 
-		// Build filter object
 		const filter = {};
-		if (status) filter.status = status;
+
 		if (make) filter.make = new RegExp(make, "i");
 		if (model) filter.model = new RegExp(model, "i");
 		if (minPrice || maxPrice) {
@@ -91,23 +76,16 @@ router.get("/", async (req, res, next) => {
 			if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
 		}
 
-		// Calculate pagination
 		const skip = (parseInt(page) - 1) * parseInt(limit);
+		const sort = { [sortBy]: sortOrder === "desc" ? -1 : 1 };
 
-		// Build sort object
-		const sort = {};
-		sort[sortBy] = sortOrder === "desc" ? -1 : 1;
-
-		// Get cars with pagination
 		const cars = await Car.find(filter)
 			.sort(sort)
 			.skip(skip)
 			.limit(parseInt(limit));
 
-		// Get total count for pagination
 		const total = await Car.countDocuments(filter);
 
-		// Map carId to id for frontend (fallback to _id if missing)
 		const carsWithId = cars.map((car) => ({
 			...car.toObject(),
 			id: car.carId || car._id,
@@ -132,12 +110,14 @@ router.get("/:id", async (req, res, next) => {
 	try {
 		const { id } = req.params;
 		let car = null;
+
 		if (mongoose.Types.ObjectId.isValid(id)) {
 			car = await Car.findById(id);
 		}
 		if (!car && /^\d+$/.test(id)) {
 			car = await Car.findOne({ carId: parseInt(id) });
 		}
+
 		if (!car) {
 			return res.status(404).json({
 				success: false,
@@ -157,7 +137,6 @@ router.get("/:id", async (req, res, next) => {
 // POST /api/cars - Create new car
 router.post("/", validateCar, async (req, res, next) => {
 	try {
-		// Check validation results
 		const errors = validationResult(req);
 		if (!errors.isEmpty()) {
 			return res.status(400).json({
@@ -169,7 +148,6 @@ router.post("/", validateCar, async (req, res, next) => {
 
 		const car = new Car(req.body);
 		await car.save();
-
 		const carWithId = { ...car.toObject(), id: car.carId || car._id };
 
 		res.status(201).json({
@@ -185,7 +163,6 @@ router.post("/", validateCar, async (req, res, next) => {
 // PUT /api/cars/:id - Update car
 router.put("/:id", validateCar, async (req, res, next) => {
 	try {
-		// Check validation results
 		const errors = validationResult(req);
 		if (!errors.isEmpty()) {
 			return res.status(400).json({
@@ -208,7 +185,6 @@ router.put("/:id", validateCar, async (req, res, next) => {
 		}
 
 		const carWithId = { ...car.toObject(), id: car.carId || car._id };
-
 		res.status(200).json({
 			success: true,
 			message: "Car updated successfully",
