@@ -1,5 +1,26 @@
 import mongoose from "mongoose";
-import Counter from "./Counter.js";
+
+async function generateUniqueGid() {
+	let gid;
+	let isUnique = false;
+
+	// Get a reference to the Car model
+	const Car = mongoose.model("Car");
+
+	while (!isUnique) {
+		// Generate a random 7-digit number (from 1000000 to 9999999)
+		gid = Math.floor(Math.random() * 9000000) + 1000000;
+
+		// Check if a car with this GID already exists
+		const existing = await Car.findOne({ gid: gid.toString() });
+
+		if (!existing) {
+			isUnique = true; // We found a unique ID
+		}
+		// If 'existing' is found, the loop will run again
+	}
+	return gid.toString();
+}
 
 const carSchema = new mongoose.Schema(
 	{
@@ -29,7 +50,6 @@ const carSchema = new mongoose.Schema(
 		price: {
 			type: Number,
 			min: [0, "Price cannot be negative"],
-			// This field is optional because 'required' is not set to true.
 		},
 		images: [
 			{
@@ -56,10 +76,11 @@ const carSchema = new mongoose.Schema(
 			trim: true,
 			maxlength: [1000, "Description cannot exceed 1000 characters"],
 		},
-		carId: {
-			type: Number,
+		gid: {
+			type: String, // Keep as String for flexibility (e.g., padding with 0s)
 			unique: true,
 			index: true,
+			// 'uppercase' is no longer needed
 		},
 	},
 	{
@@ -71,15 +92,10 @@ const carSchema = new mongoose.Schema(
 carSchema.index({ make: 1, model: 1, year: 1 });
 carSchema.index({ price: 1 });
 
-// Auto-increment carId before saving a new car
+// UPDATED: Auto-generate GID before saving (now async)
 carSchema.pre("save", async function (next) {
-	if (this.isNew) {
-		const counter = await Counter.findByIdAndUpdate(
-			"carId",
-			{ $inc: { seq: 1 } },
-			{ new: true, upsert: true },
-		);
-		this.carId = counter.seq;
+	if (this.isNew && !this.gid) {
+		this.gid = await generateUniqueGid();
 	}
 	next();
 });

@@ -27,21 +27,6 @@ app.use(helmet());
 
 // CORS configuration
 
-// app.use(
-// 	cors({
-// 		origin: "https://goldlex-auto.vercel.app", // <--- EXPLICITLY SET YOUR VERCEL FRONTEND URL HERE
-// 		credentials: true,
-// 	}),
-// );
-// app.use(
-// 	cors({
-// 		origin:
-// 			process.env.NODE_ENV === "production"
-// 				? ["https://goldlex-auto.vercel.app/"] // Replace with your frontend domain
-// 				: ["http://localhost:3000", "http://localhost:5173"], // Development origins
-// 		credentials: true,
-// 	}),
-// );
 app.use(
 	cors({
 		origin: [
