@@ -1,36 +1,37 @@
 import nodemailer from "nodemailer";
 
-// Helper: send email if transporter configured
+/**
+ * Send an email using Nodemailer + SendGrid SMTP.
+ * Works cleanly on Render and local environments.
+ */
 export async function sendEmail(to, subject, text) {
-	// Expect SMTP config in env: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM
+	// Load required environment variables
 	const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM } =
 		process.env;
+
+	// Safety check: skip if not configured
 	if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !EMAIL_FROM) {
-		console.warn(
-			"Email not sent: SMTP environment variables are not configured.",
-		);
+		console.warn("Email not sent: SMTP environment variables are missing.");
 		return { skipped: true, reason: "SMTP not configured" };
 	}
 
-	// Build transporter options with sensible timeouts and TLS options to surface network issues quickly
+	// --- FIXED TRANSPORTER CONFIG ---
 	const transporterOptions = {
 		host: SMTP_HOST,
 		port: Number(SMTP_PORT),
-		secure: Number(SMTP_PORT) === 465, // true for 465 (SMTPS), false for STARTTLS (587)
+		secure: Number(SMTP_PORT) === 465, // ✅ false for 587 (STARTTLS)
 		auth: {
 			user: SMTP_USER,
 			pass: SMTP_PASS,
 		},
-		// Timeouts (ms) — tune as needed; these help fail fast on connection problems
-		connectionTimeout: 10000, // socket connection timeout
-		greetingTimeout: 10000, // SMTP greeting timeout
+		connectionTimeout: 10000, // ms
+		greetingTimeout: 10000,
 		socketTimeout: 20000,
-		// If your SMTP provider uses a self-signed cert or Render environment causes TLS issues,
-		// you can relax validation. Prefer not to set this in production unless necessary.
+
 		tls: {
-			rejectUnauthorized: true,
+			rejectUnauthorized: false,
 		},
-		// Enable debugging/verbose logs in deployed app logs when troubleshooting
+
 		logger: false,
 		debug: false,
 	};
@@ -38,18 +39,19 @@ export async function sendEmail(to, subject, text) {
 	try {
 		const transporter = nodemailer.createTransport(transporterOptions);
 
-		// Verify connection configuration — this will attempt to connect and fail fast if unreachable
+		// Verify the connection (quickly detects bad network/firewall)
 		try {
 			await transporter.verify();
+			console.log("SMTP connection verified successfully.");
 		} catch (verifyErr) {
 			console.error("SMTP verify failed:", {
-				code: verifyErr && verifyErr.code,
-				message: verifyErr && verifyErr.message,
+				code: verifyErr.code,
+				message: verifyErr.message,
 			});
-			// Return detailed error so caller/logs can show the underlying cause
 			return { skipped: false, error: verifyErr };
 		}
 
+		// Send the message
 		const info = await transporter.sendMail({
 			from: EMAIL_FROM,
 			to,
@@ -57,11 +59,10 @@ export async function sendEmail(to, subject, text) {
 			text,
 		});
 
-		console.log("Email sent successfully:", info.messageId);
+		console.log("✅ Email sent successfully:", info.messageId);
 		return { skipped: false, info };
 	} catch (err) {
-		// Log full error object to make debugging easier in Render logs
-		console.error("Error sending email:", err && err.code, err && err.message);
+		console.error("❌ Error sending email:", err.code, err.message);
 		return { skipped: false, error: err };
 	}
 }
