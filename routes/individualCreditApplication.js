@@ -1,29 +1,34 @@
 import express from "express";
-import CreditApplication from "../models/CreditApplication.js";
+import IndividualCreditApplication from "../models/IndividualCreditApplication.js";
 import { sendEmail } from "../utils/notify.js";
 
 const router = express.Router();
 
 router.post("/", async (req, res, next) => {
 	try {
-		const application = new CreditApplication(req.body);
+		const application = new IndividualCreditApplication(req.body);
 		await application.save();
 
 		// Email Notification
 		try {
 			const emailRecipient = process.env.NOTIFY_EMAIL;
 			if (emailRecipient) {
-				const subject = `New Business Credit Application: ${application.businessName}`;
-				const text = `New business application:\nBusiness: ${application.businessName}\nContact: ${application.fullName}\nAmount: ${application.desiredCreditAmount}`;
+				const subject = `New Individual Credit Application: ${application.fullName}`;
+				const text = `A new individual credit application has been submitted:\n
+Name: ${application.fullName}
+Amount: ${application.desiredCreditAmount}
+Phone: ${application.phoneNumber}
+Pay Slip: ${application.paySlipUrl || "Not uploaded"}
+        `;
 				await sendEmail(emailRecipient, subject, text);
 			}
 		} catch (e) {
-			console.error(e);
+			console.error("Email notification failed", e);
 		}
 
 		res.status(201).json({
 			success: true,
-			message: "Business application submitted successfully!",
+			message: "Application submitted successfully!",
 			data: application,
 		});
 	} catch (error) {
@@ -31,35 +36,21 @@ router.post("/", async (req, res, next) => {
 	}
 });
 
-// ... GET and PUT routes remain similar, just ensure they return the new fields ...
 router.get("/", async (req, res, next) => {
 	try {
 		const page = parseInt(req.query.page) || 1;
 		const limit = parseInt(req.query.limit) || 10;
 		const skip = (page - 1) * limit;
-		const apps = await CreditApplication.find()
+		const apps = await IndividualCreditApplication.find()
 			.sort({ createdAt: -1 })
 			.skip(skip)
 			.limit(limit);
-		const total = await CreditApplication.countDocuments();
+		const total = await IndividualCreditApplication.countDocuments();
 		res.json({
 			success: true,
 			data: apps,
 			pagination: { current: page, total, pages: Math.ceil(total / limit) },
 		});
-	} catch (e) {
-		next(e);
-	}
-});
-
-router.put("/:id", async (req, res, next) => {
-	try {
-		const updated = await CreditApplication.findByIdAndUpdate(
-			req.params.id,
-			req.body,
-			{ new: true },
-		);
-		res.json({ success: true, data: updated });
 	} catch (e) {
 		next(e);
 	}

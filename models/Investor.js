@@ -1,116 +1,26 @@
 import mongoose from "mongoose";
 
 const investorSchema = new mongoose.Schema({
-	name: {
-		type: String,
-		required: [true, "Investor name is required"],
-		trim: true,
-		maxlength: [100, "Name cannot exceed 100 characters"],
-	},
-	phoneNumber: {
-		type: String,
-		required: [true, "Phone number is required"],
-		trim: true,
-		match: [/^(0\d{9}|\+\d{15}|\d{10})$/, "Please enter a valid phone number"],
-	},
-	email: {
-		type: String,
-		required: [true, "Email is required"],
-		trim: true,
-		lowercase: true,
-		match: [
-			/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-			"Please enter a valid email",
-		],
-	},
-	occupation: {
-		type: String,
-		required: [true, "Occupation is required"],
-		trim: true,
-	},
-	city: {
-		type: String,
-		required: [true, "City is required"],
-		trim: true,
-	},
-	investmentAmount: {
-		type: Number,
-		required: [true, "Investment amount is required"],
-		min: [1000, "Minimum investment is 1000"],
-	},
-	expectedROI: {
-		type: String,
-		required: false, // <-- MODIFIED: Set to false
-		trim: true,
-	},
-	createdAt: {
-		type: Date,
-		default: Date.now,
-	},
+	name: { type: String, required: true, trim: true },
+	dob: { type: Date }, // New
+	nationality: { type: String }, // New
+	phoneNumber: { type: String, required: true },
+	email: { type: String, required: true },
+	occupation: { type: String, required: true },
+	sourceOfFunds: { type: String }, // New
+	city: { type: String, required: true },
+
+	idType: { type: String }, // New
+	idNumber: { type: String }, // New
+
+	nextOfKinName: { type: String }, // New
+	nextOfKinPhone: { type: String }, // New
+
+	bankName: { type: String }, // New (for returns)
+	bankAccountNumber: { type: String }, // New
+
+	investmentAmount: { type: Number, required: true, min: 5000 },
+	createdAt: { type: Date, default: Date.now },
 });
 
-// Create model if it doesn't exist, otherwise use existing
-const Investor =
-	mongoose.models.Investor || mongoose.model("Investor", investorSchema);
-
-export default Investor;
-
-// import mongoose from "mongoose";
-
-// const investorSchema = new mongoose.Schema({
-// 	name: {
-// 		type: String,
-// 		required: [true, "Investor name is required"],
-// 		trim: true,
-// 		maxlength: [100, "Name cannot exceed 100 characters"],
-// 	},
-// 	phoneNumber: {
-// 		type: String,
-// 		required: [true, "Phone number is required"],
-// 		trim: true,
-// 		match: [/^(0\d{9}|\+\d{15}|\d{10})$/, "Please enter a valid phone number"],
-// 	},
-// 	email: {
-// 		type: String,
-// 		required: [true, "Email is required"],
-// 		trim: true,
-// 		lowercase: true,
-// 		match: [
-// 			/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-// 			"Please enter a valid email",
-// 		],
-// 	},
-// 	occupation: {
-// 		type: String,
-// 		required: [true, "Occupation is required"],
-// 		trim: true,
-// 	},
-// 	city: {
-// 		type: String,
-// 		required: [true, "City is required"],
-// 		trim: true,
-// 	},
-// 	investmentAmount: {
-// 		type: Number,
-// 		required: [true, "Investment amount is required"],
-// 		min: [1000, "Minimum investment is 1000"],
-// 	},
-// 	expectedROI: {
-// 		type: String,
-// 		required: [true, "Expected ROI is required"],
-// 		enum: {
-// 			values: ["Monthly", "Quarterly", "Annually"],
-// 			message: "Invalid ROI type",
-// 		},
-// 	},
-// 	createdAt: {
-// 		type: Date,
-// 		default: Date.now,
-// 	},
-// });
-
-// // Create model if it doesn't exist, otherwise use existing
-// const Investor =
-// 	mongoose.models.Investor || mongoose.model("Investor", investorSchema);
-
-// export default Investor;
+export default mongoose.model("Investor", investorSchema);

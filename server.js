@@ -5,28 +5,21 @@ import dotenv from "dotenv";
 import connectDB from "./config/database.js";
 import errorHandler from "./middleware/errorHandler.js";
 
-// Import routes
 import contactRoutes from "./routes/contact.js";
 import orderRoutes from "./routes/order.js";
 import creditApplicationRoutes from "./routes/creditApplication.js";
+import individualCreditApplicationRoutes from "./routes/individualCreditApplication.js"; // New
 import carFormRoutes from "./routes/carForm.js";
 import carRoutes from "./routes/car.js";
-import investorRoutes from "./routes/investor.js"; // Ensure this is the correct path to your investor routes
+import investorRoutes from "./routes/investor.js";
+import eligibilityRoutes from "./routes/eligibility.js"; // New
 
-// Load environment variables
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Connect to MongoDB
 connectDB();
-
-// Security middleware
 app.use(helmet());
-
-// CORS configuration
-
 app.use(
 	cors({
 		origin: [
@@ -38,47 +31,35 @@ app.use(
 		credentials: true,
 	}),
 );
-
-// Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Request logging middleware
 app.use((req, res, next) => {
 	console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
 	next();
 });
 
-// Health check endpoint
-app.get("/health", (req, res) => {
-	res.status(200).json({
-		success: true,
-		message: "Server is running",
-		timestamp: new Date().toISOString(),
-	});
-});
+app.get("/health", (req, res) =>
+	res.json({ success: true, message: "Server is running" }),
+);
 
-// API routes
 app.use("/api/contact", contactRoutes);
 app.use("/api/order", orderRoutes);
-app.use("/api/credit-application", creditApplicationRoutes);
+app.use("/api/credit-application", creditApplicationRoutes); // Business
+app.use(
+	"/api/individual-credit-application",
+	individualCreditApplicationRoutes,
+); // Individual
 app.use("/api/car-form", carFormRoutes);
 app.use("/api/cars", carRoutes);
 app.use("/api/investors", investorRoutes);
+app.use("/api/check-eligibility", eligibilityRoutes); // Qualification check
 
-// Handle 404 for undefined routes
-app.use("*", (req, res) => {
-	res.status(404).json({
-		success: false,
-		message: "Route not found",
-	});
-});
-
-// Error handling middleware (must be last)
+app.use("*", (req, res) =>
+	res.status(404).json({ success: false, message: "Route not found" }),
+);
 app.use(errorHandler);
 
-// Start server
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
-	console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
 });
