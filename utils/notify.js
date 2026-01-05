@@ -1,8 +1,6 @@
 import sgMail from "@sendgrid/mail";
 
-/**
- * Send email via SendGrid HTTP API (works reliably on Render)
- */
+
 export async function sendEmail(to, subject, text) {
 	const { SENDGRID_API_KEY, EMAIL_FROM } = process.env;
 
@@ -33,71 +31,33 @@ export async function sendEmail(to, subject, text) {
 	}
 }
 
-// import nodemailer from "nodemailer";
 
-// /**
-//  * Send an email using Nodemailer + SendGrid SMTP.
-//  * Works cleanly on Render and local environments.
-//  */
-// export async function sendEmail(to, subject, text) {
-// 	// Load required environment variables
-// 	const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM } =
-// 		process.env;
+export async function sendTemplateEmail(to, templateId, dynamicData) {
+	const { SENDGRID_API_KEY, EMAIL_FROM } = process.env;
 
-// 	// Safety check: skip if not configured
-// 	if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !EMAIL_FROM) {
-// 		console.warn("Email not sent: SMTP environment variables are missing.");
-// 		return { skipped: true, reason: "SMTP not configured" };
-// 	}
+	if (!SENDGRID_API_KEY || !EMAIL_FROM) {
+		console.warn("Template email not sent: keys missing.");
+		return;
+	}
 
-// 	// --- FIXED TRANSPORTER CONFIG ---
-// 	const transporterOptions = {
-// 		host: SMTP_HOST,
-// 		port: Number(SMTP_PORT),
-// 		secure: Number(SMTP_PORT) === 465, // ✅ false for 587 (STARTTLS)
-// 		auth: {
-// 			user: SMTP_USER,
-// 			pass: SMTP_PASS,
-// 		},
-// 		connectionTimeout: 10000, // ms
-// 		greetingTimeout: 10000,
-// 		socketTimeout: 20000,
+	sgMail.setApiKey(SENDGRID_API_KEY);
 
-// 		tls: {
-// 			rejectUnauthorized: false,
-// 		},
+	const msg = {
+		to, // The user's email
+		from: EMAIL_FROM, // Your verified sender
+		templateId: templateId, // The ID you provided
+		dynamic_template_data: dynamicData, // Data to fill {{variables}}
+	};
 
-// 		logger: false,
-// 		debug: false,
-// 	};
-
-// 	try {
-// 		const transporter = nodemailer.createTransport(transporterOptions);
-
-// 		// Verify the connection (quickly detects bad network/firewall)
-// 		try {
-// 			await transporter.verify();
-// 			console.log("SMTP connection verified successfully.");
-// 		} catch (verifyErr) {
-// 			console.error("SMTP verify failed:", {
-// 				code: verifyErr.code,
-// 				message: verifyErr.message,
-// 			});
-// 			return { skipped: false, error: verifyErr };
-// 		}
-
-// 		// Send the message
-// 		const info = await transporter.sendMail({
-// 			from: EMAIL_FROM,
-// 			to,
-// 			subject,
-// 			text,
-// 		});
-
-// 		console.log("✅ Email sent successfully:", info.messageId);
-// 		return { skipped: false, info };
-// 	} catch (err) {
-// 		console.error("❌ Error sending email:", err.code, err.message);
-// 		return { skipped: false, error: err };
-// 	}
-// }
+	try {
+		const response = await sgMail.send(msg);
+		console.log("✅ User Acknowledgement sent:", response[0].statusCode);
+		return { sent: true };
+	} catch (error) {
+		console.error("❌ Error sending user ack:", error.message);
+		if (error.response) {
+			console.error(error.response.body);
+		}
+		return { sent: false, error };
+	}
+}
