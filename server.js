@@ -52,7 +52,7 @@ app.use(
 ); // Individual
 app.use("/api/car-form", carFormRoutes);
 app.use("/api/cars", carRoutes);
-app.use("/api/investors", investorRoutes);
+app.use("/api/investor", investorRoutes);
 app.use("/api/check-eligibility", eligibilityRoutes); // Qualification check
 
 app.use("*", (req, res) =>

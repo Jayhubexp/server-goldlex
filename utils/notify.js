@@ -1,63 +1,37 @@
-import sgMail from "@sendgrid/mail";
+import nodemailer from "nodemailer";
 
+export async function sendEmail(to, subject, text, html = null) {
+	// We use the Gmail credentials from your .env
+	const { GMAIL_USER, GMAIL_APP_PASSWORD } = process.env;
 
-export async function sendEmail(to, subject, text) {
-	const { SENDGRID_API_KEY, EMAIL_FROM } = process.env;
-
-	if (!SENDGRID_API_KEY || !EMAIL_FROM) {
-		console.warn("Email not sent: SENDGRID_API_KEY or EMAIL_FROM missing.");
-		return { skipped: true, reason: "API key not configured" };
+	if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
+		console.warn("Email not sent: Gmail credentials missing.");
+		return { skipped: true, reason: "Credentials missing" };
 	}
 
-	sgMail.setApiKey(SENDGRID_API_KEY);
+	// Create the transporter using Gmail
+	const transporter = nodemailer.createTransport({
+		service: "gmail",
+		auth: {
+			user: GMAIL_USER,
+			pass: GMAIL_APP_PASSWORD, // The 16-char code
+		},
+	});
 
-	const msg = {
+	const mailOptions = {
+		from: `"Goldlex Auto" <${GMAIL_USER}>`, // Adds a nice name
 		to,
-		from: EMAIL_FROM, // must be a verified sender in SendGrid
 		subject,
-		text,
+		text, // Plain text version
+		html: html || text, // HTML version (uses text if html not provided)
 	};
 
 	try {
-		const response = await sgMail.send(msg);
-		console.log("✅ Email sent successfully:", response[0].statusCode);
-		return { sent: true, response: response[0].statusCode };
+		const info = await transporter.sendMail(mailOptions);
+		console.log(`✅ Email sent to ${to}:`, info.response);
+		return { sent: true, response: info.response };
 	} catch (error) {
-		console.error("❌ Error sending email via SendGrid API:", error.message);
-		if (error.response) {
-			console.error("SendGrid API response:", error.response.body);
-		}
-		return { sent: false, error };
-	}
-}
-
-
-export async function sendTemplateEmail(to, templateId, dynamicData) {
-	const { SENDGRID_API_KEY, EMAIL_FROM } = process.env;
-
-	if (!SENDGRID_API_KEY || !EMAIL_FROM) {
-		console.warn("Template email not sent: keys missing.");
-		return;
-	}
-
-	sgMail.setApiKey(SENDGRID_API_KEY);
-
-	const msg = {
-		to, // The user's email
-		from: EMAIL_FROM, // Your verified sender
-		templateId: templateId, // The ID you provided
-		dynamic_template_data: dynamicData, // Data to fill {{variables}}
-	};
-
-	try {
-		const response = await sgMail.send(msg);
-		console.log("✅ User Acknowledgement sent:", response[0].statusCode);
-		return { sent: true };
-	} catch (error) {
-		console.error("❌ Error sending user ack:", error.message);
-		if (error.response) {
-			console.error(error.response.body);
-		}
+		console.error(`❌ Error sending to ${to}:`, error);
 		return { sent: false, error };
 	}
 }
