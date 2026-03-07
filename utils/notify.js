@@ -11,12 +11,18 @@ export async function sendEmail(to, subject, text, html = null) {
 
 	// Create the transporter using Gmail
 	const transporter = nodemailer.createTransport({
-		service: "gmail",
-		auth: {
-			user: GMAIL_USER,
-			pass: GMAIL_APP_PASSWORD, // The 16-char code
-		},
-	});
+	host: "smtp.gmail.com",
+	port: 587,
+	secure: false,
+	auth: {
+		user: GMAIL_USER,
+		pass: GMAIL_APP_PASSWORD,
+	},
+	tls: {
+		rejectUnauthorized: false,
+	},
+	connectionTimeout: 10000,
+});
 
 	const mailOptions = {
 		from: `"Goldlex Auto" <${GMAIL_USER}>`, // Adds a nice name
