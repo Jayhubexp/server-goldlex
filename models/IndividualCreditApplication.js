@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { reviewFields } from "./applicationReview.js";
 
 const individualCreditApplicationSchema = new mongoose.Schema(
 	{
@@ -22,11 +23,7 @@ const individualCreditApplicationSchema = new mongoose.Schema(
 		bankAccountNumber: { type: String },
 		bankName: { type: String },
 		paySlipUrl: { type: String }, // URL from Cloudinary
-		status: {
-			type: String,
-			enum: ["pending", "approved", "rejected"],
-			default: "pending",
-		},
+		...reviewFields,
 	},
 	{ timestamps: true },
 );

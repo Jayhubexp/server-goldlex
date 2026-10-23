@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-export async function sendEmail(to, subject, text, html = null) {
+export async function sendEmail(to, subject, text, html = null, options = {}) {
 	// We use the Gmail credentials from your .env
 	const { GMAIL_USER, GMAIL_APP_PASSWORD } = process.env;
 
@@ -18,10 +18,9 @@ export async function sendEmail(to, subject, text, html = null) {
 		user: GMAIL_USER,
 		pass: GMAIL_APP_PASSWORD,
 	},
-	tls: {
-		rejectUnauthorized: false,
-	},
 	connectionTimeout: 10000,
+	greetingTimeout: 10000,
+	socketTimeout: 20000,
 });
 
 	const mailOptions = {
@@ -29,13 +28,14 @@ export async function sendEmail(to, subject, text, html = null) {
 		to,
 		subject,
 		text, // Plain text version
-		html: html || text, // HTML version (uses text if html not provided)
+		...(html ? { html } : {}),
+		...(options.replyTo ? { replyTo: options.replyTo } : {}),
 	};
 
 	try {
 		const info = await transporter.sendMail(mailOptions);
 		console.log(`✅ Email sent to ${to}:`, info.response);
-		return { sent: true, response: info.response };
+		return { sent: info.accepted?.length > 0, response: info.response };
 	} catch (error) {
 		console.error(`❌ Error sending to ${to}:`, error);
 		return { sent: false, error };

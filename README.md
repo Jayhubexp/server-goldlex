@@ -14,7 +14,7 @@ A production-ready Node.js backend built with Express.js and MongoDB Atlas for h
 
 ## Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js 20 or newer (required by Nodemailer 10; verified locally with Node.js 24.19.0)
 - MongoDB Atlas account
 - npm or yarn package manager
 
@@ -22,7 +22,7 @@ A production-ready Node.js backend built with Express.js and MongoDB Atlas for h
 
 1. **Clone the repository and install dependencies:**
    ```bash
-   npm install
+   npm ci
    ```
 
 2. **Set up environment variables:**

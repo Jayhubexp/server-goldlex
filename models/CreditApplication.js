@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { reviewFields } from "./applicationReview.js";
 
 const creditApplicationSchema = new mongoose.Schema(
 	{
@@ -23,11 +24,7 @@ const creditApplicationSchema = new mongoose.Schema(
 
 		desiredCreditAmount: { type: Number, required: true },
 		additionalInfo: { type: String }, // Reason for funding
-		status: {
-			type: String,
-			enum: ["pending", "approved", "rejected"],
-			default: "pending",
-		},
+		...reviewFields,
 	},
 	{ timestamps: true },
 );

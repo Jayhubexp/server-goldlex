@@ -13,6 +13,7 @@ import carFormRoutes from "./routes/carForm.js";
 import carRoutes from "./routes/car.js";
 import investorRoutes from "./routes/investor.js";
 import eligibilityRoutes from "./routes/eligibility.js"; // New
+import adminApplications from "./routes/adminApplications.js";
 
 dotenv.config();
 const app = express();
@@ -44,6 +45,7 @@ app.get("/health", (req, res) =>
 );
 
 app.use("/api/contact", contactRoutes);
+app.use("/api/admin", adminApplications);
 app.use("/api/order", orderRoutes);
 app.use("/api/credit-application", creditApplicationRoutes); // Business
 app.use(
