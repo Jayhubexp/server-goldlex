@@ -80,7 +80,7 @@ router.post('/applications/:type/:id/respond', async (req, res, next) => {
   const sent = result?.sent === true;
   emailAccepted = sent;
   await req.applicationModel.updateOne({ _id: application._id, 'responses._id': entry._id }, { $set: { 'responses.$.delivery': sent ? 'sent' : 'failed', ...(sent ? { 'responses.$.sentAt': new Date(), status: statuses[kind] } : {}) } });
-  if (!sent) return res.status(502).json({ message: 'Email could not be sent. The application status has not changed. Check email configuration and retry.' });
+  if (!sent) return res.status(502).json({ code: result?.code || 'EMAIL_SEND_FAILED', message: `Email could not be confirmed as sent. The application status has not changed. ${result?.reason || 'Check email configuration and retry.'}` });
   res.json({ success: true, message: 'Response sent and application status updated.' });
  } catch (error) {
   if (emailAccepted) {

@@ -20,6 +20,23 @@ A production-ready Node.js backend built with Express.js and MongoDB Atlas for h
 
 ## Installation
 
+### Production email on Render
+
+Use Brevo's HTTPS transactional email API on Render Free (SMTP ports are blocked). Set these backend environment variables:
+
+| Variable | Value |
+| --- | --- |
+| `EMAIL_PROVIDER` | `brevo` |
+| `BREVO_API_KEY` | A Brevo API key, not an SMTP key |
+| `EMAIL_FROM` | Your verified Brevo sender email address, without a display name |
+| `NOTIFY_EMAIL` | A monitored inbox for application notifications and borrower replies |
+
+Deploy the backend after setting these values. Replace any previous `EMAIL_PROVIDER=sendgrid` setting and remove the unused `SENDGRID_API_KEY`. Keep all API keys on the backend, outside Git and frontend `VITE_` variables.
+
+The shared sender uses `https://api.brevo.com/v3/smtp/email` over HTTPS, preserving text, HTML, and reply-to fields. Provider acceptance updates application status; rejected or unconfirmed sends do not. Check Brevo transactional logs before retrying a timeout to avoid duplicates. No automatic provider fallback or retries are performed. See the [Brevo API reference](https://developers.brevo.com/reference/send-transac-email).
+
+Gmail SMTP remains available with `EMAIL_PROVIDER=gmail` (the default), `GMAIL_USER`, and `GMAIL_APP_PASSWORD` on hosts that allow SMTP. Render Free must explicitly select `brevo`.
+
 1. **Clone the repository and install dependencies:**
    ```bash
    npm ci
